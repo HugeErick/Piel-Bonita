@@ -50,3 +50,25 @@ model User {
   accounts Account[]
   sessions Session[]
 }
+
+model Admin {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  adminname String?
+  Post      Post[]
+
+  @@index([adminname])
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    Admin?    @relation(fields: [authorId], references: [id])
+  authorId  String
+
+  @@index([authorId])
+}

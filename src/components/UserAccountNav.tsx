@@ -12,12 +12,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
 import { UserAvatar } from "@/components/UserAvatar";
+import { useRouter, usePathname } from "next/navigation";
 
 interface UserAccountNavProps extends React.HTMLAttributes<HTMLDivElement> {
   user: Pick<User, "name" | "image" | "email">;
 }
 
 export function UserAccountNav({ user }: UserAccountNavProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleScrollToCatalog = () => {
+    router.push(`${pathname}#catalogue`);
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
@@ -39,12 +47,7 @@ export function UserAccountNav({ user }: UserAccountNavProps) {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          //if clicked, scroll to the catalog 
-          <Link href="/">View catalog</Link>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem asChild>
-          <Link href="/r/create">Create Community</Link>
+          <div onClick={handleScrollToCatalog}>View catalog</div>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
