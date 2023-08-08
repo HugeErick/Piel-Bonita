@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { PasswordAdminValidatorPayload } from "@/lib/validators/passwordAdmin";
 import axios, { AxiosError } from "axios";
 import { toast } from "@/hooks/use-toast";
+import BackToHomeBtn from "@/components/BackToHomeBtn";
 
 const Page = () => {
   const router = useRouter();
@@ -62,40 +63,43 @@ const Page = () => {
 
   return (
     <div className="min-h-screen m-10 antialiased">
-      <Form {...form}>
-        <form className="space-y-8">
-          <FormField
-            control={form.control}
-            name="Admin-Password"
-            render={() => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input
-                    value={input}
-                    type="password"
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="password"
-                  />
-                </FormControl>
-                <FormDescription>Auth to admin panel</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            type="submit"
-            isLoading={isLoading}
-            disabled={input.length === 0}
-            onClick={(e) => {
-              e.preventDefault();
-              getUrlGetAdmin();
-            }}
-          >
-            Submit
-          </Button>
-        </form>
-      </Form>
+      <BackToHomeBtn />
+      <div className="mt-10">
+        <Form {...form}>
+          <form className="space-y-8">
+            <FormField
+              control={form.control}
+              name="Admin-Password"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={input}
+                      type="password"
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="password"
+                    />
+                  </FormControl>
+                  <FormDescription>Auth to admin panel</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              disabled={input.length === 0}
+              onClick={(e) => {
+                e.preventDefault();
+                getUrlGetAdmin();
+              }}
+            >
+              Submit
+            </Button>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 };

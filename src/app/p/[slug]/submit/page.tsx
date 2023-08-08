@@ -1,3 +1,4 @@
+import BackToHomeBtn from "@/components/BackToHomeBtn";
 import { Editor } from "@/components/Editor";
 import { Button } from "@/components/ui/Button";
 import { getAuthSession } from "@/lib/auth";
@@ -25,6 +26,9 @@ const page = async ({ params }: pageProps) => {
 
   return (
     <div className="flex flex-col items-start gap-6">
+      <div className="mt-10">
+        <BackToHomeBtn />
+      </div>
       <div className="border-b border-gray-200 pb-5">
         <div className="ml-2 -mt-2 flex flex-wrap items-baseline">
           <h3 className="ml-2 mt-2 text-base font-semibold leading-6 text-gray-900">
@@ -39,7 +43,7 @@ const page = async ({ params }: pageProps) => {
       <Editor />
 
       <div className="w-full flex justify-end">
-        <Button type="submit" className="w-full" form="addpic-post-form">
+        <Button type="submit" className="w-full mt-2 mb-4" form="addpic-post-form">
           Post
         </Button>
       </div>
