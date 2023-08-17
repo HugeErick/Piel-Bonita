@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { buttonVariants } from "./ui/Button";
 import Link from "next/link";
 
@@ -15,9 +16,12 @@ const AddPicBtn = ({ params }: AddPicBtnProps) => {
   return (
     <>
       <Link
-        className={buttonVariants({
-          variant: "default",
-        })}
+        className={cn(
+          buttonVariants({
+            variant: "default",
+          }),
+          "rounded-[2vh] my-2"
+        )}
         href={`p/${slug}/submit`}
       >
         Add Pic

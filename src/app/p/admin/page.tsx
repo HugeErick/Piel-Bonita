@@ -62,7 +62,7 @@ const Page = () => {
   });
 
   return (
-    <div className="min-h-screen m-10 antialiased">
+    <div className="min-h-screen m-10 antialiased pt-20 pb-6">
       <BackToHomeBtn />
       <div className="mt-10">
         <Form {...form}>
@@ -75,6 +75,7 @@ const Page = () => {
                   <FormLabel>Password</FormLabel>
                   <FormControl>
                     <Input
+                      className="rounded-[1vh]"
                       value={input}
                       type="password"
                       onChange={(e) => setInput(e.target.value)}
@@ -87,6 +88,7 @@ const Page = () => {
               )}
             />
             <Button
+              className="rounded-[2vh]"
               type="submit"
               isLoading={isLoading}
               disabled={input.length === 0}

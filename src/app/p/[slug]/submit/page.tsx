@@ -25,13 +25,13 @@ const page = async ({ params }: pageProps) => {
   if (!isAdmin) return notFound();
 
   return (
-    <div className="flex flex-col items-start gap-6">
+    <div className="flex flex-col items-start gap-6 mb-2 mt-20">
       <div className="mt-10">
         <BackToHomeBtn />
       </div>
       <div className="border-b border-gray-200 pb-5">
-        <div className="ml-2 -mt-2 flex flex-wrap items-baseline">
-          <h3 className="ml-2 mt-2 text-base font-semibold leading-6 text-gray-900">
+        <div className="ml-2 -mt-2 flex flex-col flex-wrap items-baseline">
+          <h3 className="ml-2 mt-2 text-base font-semibold leading-6">
             Lets add a picture
           </h3>
           <p className="ml-2 mt-1 truncate text-sm text-gray-500">

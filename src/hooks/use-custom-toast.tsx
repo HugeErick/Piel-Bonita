@@ -1,5 +1,6 @@
 import { buttonVariants } from '@/components/ui/Button'
 import { toast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
 export const useCustomToasts = () => {
@@ -12,7 +13,7 @@ export const useCustomToasts = () => {
         <Link
           onClick={() => dismiss()}
           href='/sign-in'
-          className={buttonVariants({ variant: 'outline' })}>
+          className={cn(buttonVariants({ variant: 'outline' }),"rounded-[2vh]")}>
           Login
         </Link>
       ),

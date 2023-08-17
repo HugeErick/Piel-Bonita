@@ -8,7 +8,10 @@ const BackToHomeBtn = () => {
     <div className="-mt-16">
       <Link
         href="/"
-        className={cn("rounded-[2vh] stroke-white ", buttonVariants())}
+        className={cn(
+          buttonVariants(),
+          "rounded-[2vh]"
+        )}
       >
         <Icons.home className="h-10 w-10" />
       </Link>
