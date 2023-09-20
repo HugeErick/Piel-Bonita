@@ -20,11 +20,12 @@ export default function RootLayout({
   authModal: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn(inter.className)}>
+    <html lang="en">
       <body
-        className={
-          "dark:bg-zinc-800 bg-zinc-50 dark:text-white text-slate-900 antialiased"
-        }
+        className={cn(
+          "dark:bg-zinc-800 bg-zinc-50 dark:text-white text-slate-900 antialiased",
+          inter.className
+        )}
       >
         <Providers>
           {/* @ts-expect-error Server Component */}

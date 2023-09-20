@@ -49,6 +49,7 @@ model User {
   image    String?
   accounts Account[]
   sessions Session[]
+  FeedbackPost FeedbackPost[]
 }
 
 model Admin {
@@ -71,4 +72,16 @@ model Post {
   authorId  String
 
   @@index([authorId])
+}
+
+model FeedbackPost {
+  commentId String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  creator   User   @relation(fields: [creatorId], references: [id])
+  creatorId String
+
+  @@index([creatorId])
 }
