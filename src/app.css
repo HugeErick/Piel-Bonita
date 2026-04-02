@@ -8,7 +8,7 @@
   --customWhite: #f5f5e6;
   --customGold: #fad643;
   --darkGray: #232326;
-  --lightBlack: #151515;
+  --mBlack: #060606;
   --blendedMagenta: #ff0087
 }
 
@@ -54,9 +54,9 @@
 }
 
 .dark {
-  --background: var(--lightBlack);
+  --background: var(--mBlack);
   --foreground: var(--customGold);
-  --card: var(--lightBlack);
+  --card: var(--mBlack);
   --card-foreground: oklch(0.984 0.003 247.858);
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.984 0.003 247.858);
@@ -64,7 +64,7 @@
   --primary-foreground: oklch(0.208 0.042 265.755);
   --secondary: oklch(0.279 0.041 260.031);
   --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: var(--lightBlack);
+  --muted: var(--mBlack);
   --muted-foreground: oklch(0.704 0.04 256.788);
   --accent: oklch(0.279 0.041 260.031);
   --accent-foreground: oklch(0.984 0.003 247.858);
