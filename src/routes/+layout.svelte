@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../app.css';
-	import { ModeWatcher } from 'mode-watcher';
+	import { ModeWatcher, toggleMode } from 'mode-watcher';
 
 	let { children } = $props();
 </script>
@@ -9,7 +9,7 @@
 	<!-- <link rel="icon" href={favicon} /> -->
 </svelte:head>
 
-<ModeWatcher />
+<ModeWatcher defaultMode={"dark"} />
 
 <div
 	class="

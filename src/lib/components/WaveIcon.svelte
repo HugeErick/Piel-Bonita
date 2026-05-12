@@ -1,4 +1,5 @@
 <script lang="ts">
+  // WaveIcon.svelte
   export let active = false;
 </script>
 
