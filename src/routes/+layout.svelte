@@ -1,12 +1,13 @@
 <script lang="ts">
 	import '../app.css';
 	import { ModeWatcher, toggleMode } from 'mode-watcher';
+  import favicon from "$lib/assets/unwantedfavicon.svg";
 
 	let { children } = $props();
 </script>
 
 <svelte:head>
-	<!-- <link rel="icon" href={favicon} /> -->
+	<link rel="icon" href={favicon} />
 </svelte:head>
 
 <ModeWatcher defaultMode={"dark"} />

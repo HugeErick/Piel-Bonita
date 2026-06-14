@@ -128,9 +128,9 @@
         </WaveIcon>
       </Button>
 
-      <Button onclick={debugg}>
-        Debugg
-      </Button>
+      <!-- <Button onclick={debugg}> -->
+      <!--   Debugg -->
+      <!-- </Button> -->
     </div>
   </div>
 
@@ -169,10 +169,10 @@
             {/if}
           </div>
 
-          <Drawer.Content>
+          <Drawer.Content class="max-h-[50vh] my-2">
             <div class="mx-auto w-full max-w-sm">
               <Drawer.Header>
-                <Drawer.Title>
+                <Drawer.Title class="text-2xl mb-4 font-semibold">
                   {previews[i] ? "Replace image" : "Submit file"}
                 </Drawer.Title>
                 <div class="flex items-center justify-between gap-2">
