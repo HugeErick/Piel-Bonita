@@ -1,5 +1,5 @@
 <script lang="ts">
-  // admin/+page.svelte
+  // admin/+page.svelte (adminpage)
   import { onMount } from "svelte";
   import { LayoutPanelLeft, List, Trash2 } from "@lucide/svelte";
   import * as Drawer from "$lib/components/ui/drawer/index.js";
@@ -7,90 +7,41 @@
   import { Label } from "$lib/components/ui/label/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import WaveIcon from "$lib/components/WaveIcon.svelte";
-
-  let layout = $state("grid");
-
-  const DB_NAME = "piel-bonita";
-  const STORE_NAME = "box-images";
-  const VERSION = 1;
-
-  function openDB(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, VERSION);
-      req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  async function saveImage(key: string, blob: Blob) {
-    const db = await openDB();
-    return new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      tx.objectStore(STORE_NAME).put(blob, key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
-
-  async function loadImage(key: string): Promise<string | null> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const req = tx.objectStore(STORE_NAME).get(key);
-      req.onsuccess = () => {
-        if (req.result) resolve(URL.createObjectURL(req.result));
-        else resolve(null);
-      }
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  async function deleteImage(key: string) {
-    const db = await openDB();
-    return new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      tx.objectStore(STORE_NAME).delete(key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
+  import {
+    catalogue,
+    initCatalogue,
+    saveBoxImage,
+    deleteBoxImage,
+    saveLayout,
+  } from "$lib/stores/catalogue";
 
   const BOX_COUNT = 5;
-  let previews = $state<(string | null)[]>(Array(BOX_COUNT).fill(null));
+
   let drawerOpen = $state<boolean[]>(Array(BOX_COUNT).fill(false));
 
-  onMount(async () => {
-    for (let i = 0; i < BOX_COUNT; i++) {
-      previews[i] = await loadImage(`box${i + 1}`);
-    }
+  onMount(() => {
+    initCatalogue();
   });
 
   async function handleFile(index: number, e: Event) {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return
-    const key = `box${index + 1}`;
-    await saveImage(key, file);
-    // revoke old object URL to avoid memory leak
-    if (previews[index]) URL.revokeObjectURL(previews[index]!);
-    previews[index] = URL.createObjectURL(file);
+    await saveBoxImage(index, file);
     drawerOpen[index] = false;
   }
 
   async function handleDelete(index: number, e?: MouseEvent) {
     // stop the click from bubbling up to the Drawer.Trigger
     e?.stopPropagation();
-    const key = `box${index + 1}`;
-    await deleteImage(key);
-    if (previews[index]) URL.revokeObjectURL(previews[index]!);
-    previews[index] = null;
+    await deleteBoxImage(index);
     drawerOpen[index] = false;
   }
 
-  function debugg(): void {
-    console.log(layout)
+  async function setLayout(value: "grid" | "list") {
+    await saveLayout(value);
   }
+
 
   const layoutBtnClasses = {
     gridBtn: "bg-zinc-600",
@@ -108,22 +59,22 @@
     <div class="flex gap-2 p-1 rounded-lg border border-(--mBlack)">
       <Button
         variant="ghost"
-        class="px-4 py-2  {layout === "grid" ? layoutBtnClasses.gridBtn : layoutBtnClasses.gridBtnInactive}"
-        onclick={() => layout = "grid" }
+        class="px-4 py-2  {$catalogue.layout === "grid" ? layoutBtnClasses.gridBtn : layoutBtnClasses.gridBtnInactive}"
+        onclick={() => setLayout("grid")}
         aria-label="Grid view"
       >
-        <WaveIcon active={layout === "grid"}>
+        <WaveIcon active={$catalogue.layout === "grid"}>
           <LayoutPanelLeft />        
         </WaveIcon>
       </Button>
 
       <Button
         variant="ghost"
-        class="px-4 py-2 {layout === "list" ? layoutBtnClasses.listBtn : layoutBtnClasses.listBtnInactive}"
-        onclick={() => layout = "list" }
+        class="px-4 py-2 {$catalogue.layout === "list" ? layoutBtnClasses.listBtn : layoutBtnClasses.listBtnInactive}"
+        onclick={() => setLayout("list") }
         aria-label="List view"
       >
-        <WaveIcon active={layout === "list"}>
+        <WaveIcon active={$catalogue.layout === "list"}>
           <List />        
         </WaveIcon>
       </Button>
@@ -135,7 +86,7 @@
   </div>
 
   <div class="max-w-5xl my-4 p-4 min-h-fit mx-auto bg-(--darkGray) border-2 rounded-md border-zinc-600">
-    <section class="grid gap-6 sm:gap-10 {layout === "grid" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} grid-rows-4 ">
+    <section class="grid gap-6 sm:gap-10 {$catalogue.layout === "grid" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} grid-rows-4 ">
       {#each Array(BOX_COUNT) as _, i}
         {@const boxKey = `box${i + 1}`}
 
@@ -145,9 +96,9 @@
             <Drawer.Trigger
               class="catalogue-box cursor-pointer w-full h-full overflow-hidden"
             > 
-              {#if previews[i]}
+              {#if $catalogue.previews[i]}
                 <img
-                  src={previews[i]}
+                  src={$catalogue.previews[i]}
                   alt="Catalogue box {i + 1}"
                   class="w-full h-full object-cover"
                 />
@@ -156,7 +107,7 @@
               {/if}
             </Drawer.Trigger>
 
-            {#if previews[i]}
+            {#if $catalogue.previews[i]}
               <Button
                 variant="destructive"
                 size="icon"
@@ -173,16 +124,17 @@
             <div class="mx-auto w-full max-w-sm">
               <Drawer.Header>
                 <Drawer.Title class="text-2xl mb-4 font-semibold">
-                  {previews[i] ? "Replace image" : "Submit file"}
+                  {$catalogue.previews[i] ? "Replace image" : "Submit file"}
                 </Drawer.Title>
                 <div class="flex items-center justify-between gap-2">
 
                   <Drawer.Description>
-                    {previews[i]
+                    {$catalogue.previews[i]
                       ? `Replace the image for box #${i + 1}`
                       : `Submit file to box #${i + 1}`}
                   </Drawer.Description>
-                  {#if previews[i]}
+
+                  {#if $catalogue.previews[i]}
                     <Button
                       variant="destructive"
                       size="sm"
@@ -216,7 +168,6 @@
       {/each}
     </section>
   </div> 
-
 </main>
 
 
