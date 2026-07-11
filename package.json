@@ -37,6 +37,7 @@
 		"vite": "^7.2.6"
 	},
 	"dependencies": {
+		"@supabase/supabase-js": "^2.110.2",
 		"mode-watcher": "^1.1.0"
 	}
 }

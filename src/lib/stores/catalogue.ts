@@ -1,12 +1,8 @@
 // src/lib/server/catalogue.ts
 import { writable, get } from "svelte/store";
+import { supabase } from "$lib/supabaseClient";
 
-const DB_NAME    = "piel-bonita";
-const STORE_NAME = "box-images";
-const META_KEY   = "__catalogue_meta__";
-const VERSION    = 1;
 const BOX_COUNT  = 5;
-const CHANNEL    = "catalogue-sync";
 
 export type Layout = "grid" | "list";
 
@@ -21,140 +17,95 @@ export const catalogue = writable<CatalogueState>({
   layout   : "grid",
 });
 
-// indexedDB helpers
-function openDB(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, VERSION);
-    req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME);
-    req.onsuccess       = () => resolve(req.result);
-    req.onerror         = () => reject(req.error);
-  });
+function publicUrlFor(path: string, updatedAt: string) {
+  const { data } = supabase.storage.from("catalogue-images").getPublicUrl(path);
+  return `${data.publicUrl}?v=${new Date(updatedAt).getTime()}`;
 }
 
-async function dbPut(key: string, value: Blob | string): Promise<void> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    tx.objectStore(STORE_NAME).put(value, key);
-    tx.oncomplete = () => resolve();
-    tx.onerror    = () => reject(tx.error);
-  });
-}
-
-async function dbGet<T>(key: string): Promise<T | null> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx  = db.transaction(STORE_NAME, "readonly");
-    const req = tx.objectStore(STORE_NAME).get(key);
-    req.onsuccess = () => resolve(req.result ?? null);
-    req.onerror   = () => reject(req.error);
-  });
-}
-
-async function dbDelete(key: string): Promise<void> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    tx.objectStore(STORE_NAME).delete(key);
-    tx.oncomplete = () => resolve();
-    tx.onerror    = () => reject(tx.error);
-  });
-}
-
-// broadcastChannel
-let bc: BroadcastChannel | null = null;
-
-function getChannel(): BroadcastChannel {
-  if (!bc) bc = new BroadcastChannel(CHANNEL);
-  return bc;
-}
-
-type SyncMessage =
-  | { type: "layout";  layout: Layout }
-  | { type: "image";   index: number }   // tells other tabs to reload from IDB
-  | { type: "delete";  index: number };
-
-function broadcast(msg: SyncMessage) {
-  getChannel().postMessage(msg);
-}
-
-// initialise: load persisted state into store
 export async function initCatalogue(): Promise<void> {
-  // load layout preference
-  const meta = await dbGet<{ layout: Layout }>(META_KEY);
-  const layout: Layout = meta?.layout ?? "grid";
+  const [{ data: images }, { data: settings }] = await Promise.all([
+    supabase.from("catalogue_images").select("box_index, storage_path, updated_at"),
+    supabase.from("catalogue_settings").select("layout").eq("id", true).single(),
+  ]);
 
-  // load image blobs → object urls
   const previews: (string | null)[] = Array(BOX_COUNT).fill(null);
-  for (let i = 0; i < BOX_COUNT; i++) {
-    const blob = await dbGet<Blob>(`box${i + 1}`);
-    if (blob) previews[i] = URL.createObjectURL(blob);
+  for (const row of images ?? []) {
+    previews[row.box_index] = publicUrlFor(row.storage_path, row.updated_at);
   }
 
-  catalogue.set({ previews, layout });
+  catalogue.set({ previews, layout: (settings?.layout as Layout) ?? "grid" });
 
-  // listen for updates from other tabs
-  getChannel().onmessage = async (e: MessageEvent<SyncMessage>) => {
-    const msg = e.data;
-    const state = get(catalogue);
-
-    if (msg.type === "layout") {
-      catalogue.set({ ...state, layout: msg.layout });
-    }
-
-    if (msg.type === "image") {
-      const blob = await dbGet<Blob>(`box${msg.index + 1}`);
-      const next = [...state.previews];
-      if (next[msg.index]) URL.revokeObjectURL(next[msg.index]!);
-      next[msg.index] = blob ? URL.createObjectURL(blob) : null;
-      catalogue.set({ ...state, previews: next });
-    }
-
-    if (msg.type === "delete") {
-      const next = [...state.previews];
-      if (next[msg.index]) URL.revokeObjectURL(next[msg.index]!);
-      next[msg.index] = null;
-      catalogue.set({ ...state, previews: next });
-    }
-  };
+  // live sync across tabs/users
+  supabase
+  .channel("catalogue-sync")
+  .on("postgres_changes", { event: "*", schema: "public", table: "catalogue_images" }, () => {
+    initCatalogue();
+  })
+  .on("postgres_changes", { event: "*", schema: "public", table: "catalogue_settings" }, () => {
+    initCatalogue();
+  })
+  .subscribe();
 }
 
-// public API used by admin
+function currentAdminKey(): string {
+  return new URLSearchParams(window.location.search).get("key") ?? "";
+}
 
-/** persist a new image for a box and update the store + notify other tabs. */
+function withKey(path: string): string {
+  const key = currentAdminKey();
+  return key ? `${path}?key=${encodeURIComponent(key)}` : path;
+}
+
+
+async function adminFetch(path: string, init: RequestInit) {
+  const res = await fetch(withKey(path), init);
+  if (!res.ok) {
+    // hooks.server.ts returns a plain error(404) — not JSON — on a bad/expired key
+    if (res.status === 404) {
+      throw new Error("Admin session expired — reload the page with a fresh admin link.");
+    }
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `Request failed (${res.status})`);
+  }
+  return res;
+}
+
 export async function saveBoxImage(index: number, file: File): Promise<void> {
-  await dbPut(`box${index + 1}`, file);
+  const form = new FormData();
+  form.append("file", file);
+  form.append("index", String(index));
 
-  catalogue.update(s => {
+  const res = await adminFetch("/admin/api/upload", { method: "POST", body: form });
+  const { url } = await res.json();
+
+  catalogue.update((s) => {
     const previews = [...s.previews];
-    if (previews[index]) URL.revokeObjectURL(previews[index]!);
-    previews[index] = URL.createObjectURL(file);
+    previews[index] = url;
     return { ...s, previews };
   });
-
-  broadcast({ type: "image", index });
 }
 
-/** delete a box image from persistence and update the store + notify. */
 export async function deleteBoxImage(index: number): Promise<void> {
-  await dbDelete(`box${index + 1}`);
+  await adminFetch("/admin/api/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ index }),
+  });
 
-  catalogue.update(s => {
+  catalogue.update((s) => {
     const previews = [...s.previews];
-    if (previews[index]) URL.revokeObjectURL(previews[index]!);
     previews[index] = null;
     return { ...s, previews };
   });
-
-  broadcast({ type: "delete", index });
 }
 
-/** persist layout choice and notify other tabs. */
 export async function saveLayout(layout: Layout): Promise<void> {
-  const meta = await dbGet<object>(META_KEY) ?? {};
-  await dbPut(META_KEY, JSON.stringify({ ...meta, layout }) as unknown as Blob);
+  await adminFetch("/admin/api/layout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ layout }),
+  });
 
-  catalogue.update(s => ({ ...s, layout }));
-  broadcast({ type: "layout", layout });
+  catalogue.update((s) => ({ ...s, layout }));
 }
 
