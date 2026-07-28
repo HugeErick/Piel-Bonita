@@ -1,7 +1,8 @@
 <script lang="ts">
   // admin/+page.svelte (adminpage)
+  import { goto } from "$app/navigation";
   import { onMount } from "svelte";
-  import { LayoutPanelLeft, List, Trash2 } from "@lucide/svelte";
+  import { LayoutPanelLeft, List, Trash2, House } from "@lucide/svelte";
   import * as Drawer from "$lib/components/ui/drawer/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
@@ -14,6 +15,8 @@
     deleteBoxImage,
     saveLayout,
   } from "$lib/stores/catalogue";
+	import PielBonitaTitle from "$lib/components/PielBonitaTitle.svelte";
+  import WorkingOnGUI from "$lib/components/WorkingOnGUI.svelte";
 
   const BOX_COUNT = 5;
 
@@ -52,10 +55,16 @@
 </script>
 
 <main class="w-full mt-12">
+  <Button
+    variant="ghost"
+    title="Homepage view"
+    class="p-2 mx-6"
+    onclick={() => goto("/")}
+  >
+    <House class="size-5" />
+  </Button>
   <div class="mb-4 mx-auto flex flex-col gap-4 items-center justify-center px-4">
-    <h1 class="m-1 sm:text-5xl text-4xl font-extrabold">
-      Piel Bonita
-    </h1>
+    <PielBonitaTitle />
     <div class="flex gap-2 p-1 rounded-lg border border-(--mBlack)">
       <Button
         variant="ghost"
@@ -100,7 +109,7 @@
                 <img
                   src={$catalogue.previews[i]}
                   alt="Catalogue box {i + 1}"
-                  class="w-full h-full object-cover"
+                  class="w-full h-full object-contain"
                 />
               {:else}
                 Catalogue box #{i + 1}
@@ -168,6 +177,9 @@
       {/each}
     </section>
   </div> 
+  <div class="m-4">
+    <WorkingOnGUI feature="Social icons to send widget" />
+  </div>
 </main>
 
 

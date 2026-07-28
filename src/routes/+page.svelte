@@ -1,9 +1,18 @@
 <script lang="ts">
   // +page.svelte (Homepage)
   import { onMount } from "svelte";
+  import { enhance } from "$app/forms";
   import { catalogue, initCatalogue } from "$lib/stores/catalogue";
+  import { Button, buttonVariants } from "$lib/components/ui/button/index.js";
+  import * as Dialog from "$lib/components/ui/dialog/index.js";
+  import { Input } from "$lib/components/ui/input/index.js";
+  import { Label } from "$lib/components/ui/label/index.js";
+	import PielBonitaTitle from "$lib/components/PielBonitaTitle.svelte";
+	import WorkingOnGUI from "$lib/components/WorkingOnGUI.svelte";
 
+  let { data } = $props();
   const BOX_COUNT = 5;
+  let dialogOpen = $state(false);
 
   onMount(() => {
     initCatalogue();
@@ -11,10 +20,54 @@
 </script>
 
 <main class="w-full mt-12">
+  <div class="flex items-stretch justify-end">
+    {#if data.user}
+      <form method="POST" action="?/logout" use:enhance>
+        <Button variant="secondary" type="submit" class="p-4 mx-6">
+          Log out ({data.user.email})
+        </Button>
+      </form>
+    {:else}
+      <Dialog.Root bind:open={dialogOpen}>
+        <Dialog.Trigger class={buttonVariants({ variant: "secondary" }) + " p-4 mx-6"}>
+          Log in
+        </Dialog.Trigger>
+        <Dialog.Content class="sm:max-w-106.25">
+          <form
+            method="POST"
+            action="?/login"
+            use:enhance={() => {
+              return async ({ result, update }) => {
+                await update();
+                if (result.type === "success") dialogOpen = false;
+              };
+            }}
+          >
+            <Dialog.Header>
+              <Dialog.Title>Log in</Dialog.Title>
+              <Dialog.Description>
+                Enter your email to continue.
+              </Dialog.Description>
+            </Dialog.Header>
+            <div class="grid gap-4 py-4">
+              <div class="grid gap-3">
+                <Label for="email-1">Email</Label>
+                <Input id="email-1" name="email" type="email" required placeholder="you@example.com" />
+              </div>
+            </div>
+            <Dialog.Footer>
+              <Dialog.Close type="button" class={buttonVariants({ variant: "outline" })}>
+                Cancel
+              </Dialog.Close>
+              <Button type="submit">Continue</Button>
+            </Dialog.Footer>
+          </form>
+        </Dialog.Content>
+      </Dialog.Root>
+    {/if}
+  </div>
   <div class="mb-4 mx-auto flex flex-col gap-4 items-center justify-center px-4">
-    <h1 class="m-1 sm:text-5xl text-4xl font-extrabold">
-      Piel Bonita
-    </h1>
+    <PielBonitaTitle />
   </div>
 
   <div class="max-w-5xl my-4 p-4 min-h-fit mx-auto bg-(--darkGray) border-2 rounded-md border-zinc-600">
@@ -30,7 +83,7 @@
             <img
               src={$catalogue.previews[i]}
               alt="Catalogue box {i + 1}"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-contain"
             />
           {:else}
             <div class="w-full h-full flex items-center justify-center text-muted-foreground text-sm select-none">
@@ -41,7 +94,9 @@
       {/each}
     </section>
   </div>
-
+  <div class="m-4">
+    <WorkingOnGUI feature="Social icons to send widget" />
+  </div>
 </main>
 
 
