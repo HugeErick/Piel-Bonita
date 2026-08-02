@@ -12,7 +12,7 @@
   <span class="text-2xl font-semibold text-center">
     Working on the following feature:
   </span>
-  <span class="text-lg bg-(--customGold)/50 p-1 rounded-md">
+  <span class="text-lg text-white bg-(--customGold)/40 p-1 rounded-md">
     {feature}
   </span>
 </div>
