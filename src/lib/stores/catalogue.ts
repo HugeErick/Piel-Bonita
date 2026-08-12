@@ -22,27 +22,33 @@ function publicUrlFor(path: string, updatedAt: string) {
   return `${data.publicUrl}?v=${new Date(updatedAt).getTime()}`;
 }
 
-export async function initCatalogue(): Promise<void> {
-  const [{ data: images }, { data: settings }] = await Promise.all([
-    supabase.from("catalogue_images").select("box_index, storage_path, updated_at"),
+async function refreshCatalogue(): Promise<void> {
+  const [{ data: images }, {data: settings }] = await Promise.all([
+    supabase.from("catalogue-images").select("box_index, storage_path, updated_at"),
     supabase.from("catalogue_settings").select("layout").eq("id", true).single(),
   ]);
-
   const previews: (string | null)[] = Array(BOX_COUNT).fill(null);
   for (const row of images ?? []) {
     previews[row.box_index] = publicUrlFor(row.storage_path, row.updated_at);
-  }
-
+  } 
   catalogue.set({ previews, layout: (settings?.layout as Layout) ?? "grid" });
+}
+
+let syncChannel: ReturnType<typeof supabase.channel> | null = null;
+
+export async function initCatalogue(): Promise<void> {
+  await refreshCatalogue();
+
+  if (syncChannel) return;
 
   // live sync across tabs/users
-  supabase
+  syncChannel = supabase
   .channel("catalogue-sync")
   .on("postgres_changes", { event: "*", schema: "public", table: "catalogue_images" }, () => {
-    initCatalogue();
+    refreshCatalogue();
   })
   .on("postgres_changes", { event: "*", schema: "public", table: "catalogue_settings" }, () => {
-    initCatalogue();
+    refreshCatalogue();
   })
   .subscribe();
 }

@@ -2,7 +2,12 @@
   import { catalogue } from "$lib/stores/catalogue";
   import PielBonitaTitle from "$lib/components/PielBonitaTitle.svelte";
 
-  const BOX_COUNT = 5;
+  let filled = $derived(
+    $catalogue.previews
+      .map((url, i) => ({ url, i }))
+      .filter((b): b is {url: string; i: number } => b.url !== null)
+  );
+  let count = $derived(filled.length);
 </script>
 
 <div class="widget-preview max-w-5xl mx-auto my-6 p-4 bg-(--darkGray) border-2 rounded-md border-(--customGold)">
@@ -13,24 +18,52 @@
     </span>
   </div>
 
-  <section
-    class="grid gap-4 sm:gap-6 grid-rows-4
-      {$catalogue.layout === 'grid' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}"
-  >
-    {#each Array(BOX_COUNT) as _, i}
-      <div class="relative catalogue-box overflow-hidden {i === 0 ? 'row-start-1 row-end-5' : ''}">
-        {#if $catalogue.previews[i]}
+  {#if count === 0}
+    <div class="flex items-center justify-center min-h-50 text-muted-foreground text-sm select-none">
+      No images yet
+    </div>
+  {:else if count === 1}
+    <div class="catalogue-box overflow-hidden min-h-100 w-full">
+      <img
+        src={filled[0].url}
+        alt="Widget box {filled[0].i + 1}"
+        class="w-full h-full object-contain"
+      />
+    </div>
+  {:else if count === 2}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 min-h-75">
+      {#each filled as box (box.i)}
+        <div class="catalogue-box overflow-hidden">
           <img
-            src={$catalogue.previews[i]}
-            alt="Widget box {i + 1}"
+            src={box.url}
+            alt="Widget box {box.i + 1}"
             class="w-full h-full object-contain"
           />
-        {:else}
-          <div class="w-full h-full flex items-center justify-center text-muted-foreground text-sm select-none">
-            Box #{i + 1}
-          </div>
-        {/if}
-      </div>
-    {/each}
-  </section>
+        </div>
+      {/each}
+    </div>
+  {:else}
+    <!-- 3+ images: fall back to the chosen layout (grid/list) -->
+    <section
+      class="grid gap-4 sm:gap-6
+      {$catalogue.layout === 'grid' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}"
+      style={$catalogue.layout === 'grid'
+        ? `grid-template-rows: repeat(${count - 1}, minmax(0, 1fr));`
+        : ''}
+    >
+      {#each filled as box, idx (box.i)}
+        <div
+          class="relative catalogue-box overflow-hidden
+          {idx === 0 && $catalogue.layout === 'grid' ? `row-start-1` : ''}"
+          style={idx === 0 && $catalogue.layout === 'grid' ? `grid-row-end: ${count};` : ''}
+        >
+          <img
+            src={box.url}
+            alt="Widget box {box.i + 1}"
+            class="w-full h-full object-contain"
+          />
+        </div>
+      {/each}
+    </section>
+  {/if}
 </div>
