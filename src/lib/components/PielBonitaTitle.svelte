@@ -1,4 +1,4 @@
-<h1 id=title-component class="relative overflow-hidden m-1 sm:text-5xl text-4xl font-extrabold">
+<h1 id=title-component class="relative overflow-hidden mt-10 mb-2 mx-1 sm:text-5xl text-5xl font-extrabold">
   Piel Bonita
 </h1>
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  // AdminView
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { LayoutPanelLeft, List, Trash2, House } from "@lucide/svelte";
@@ -17,6 +18,7 @@
 	import PielBonitaTitle from "$lib/components/PielBonitaTitle.svelte";
   import WorkingOnGUI from "$lib/components/WorkingOnGUI.svelte";
   import GeneratedWidget from "$lib/components/GeneratedWidget.svelte";
+  import SharingToolkit from "$lib/components/SharingToolkit.svelte";
 
   const BOX_COUNT = 5;
 
@@ -109,16 +111,27 @@
 
         <Drawer.Root bind:open={drawerOpen[i]}> 
           <div class="relative {i === 0 ? 'row-start-1 row-end-5' : ''}">
-
             {#if $catalogue.previews[i]}
               <Drawer.Trigger
-                class="catalogue-box cursor-pointer w-full h-full overflow-hidden border-0 sm:border-r-4 border-r-2 border-r-(--customGold)"
+                class="block w-full h-full cursor-pointer"
               > 
                 <img
                   src={$catalogue.previews[i]}
                   alt="Catalogue box {i + 1}"
-                  class="w-full h-full object-contain"
+                  class="
+                  catalogue-box w-full h-full
+                  object-cover overflow-hidden border-0
+                  sm:border-r-4 border-r-2 border-r-(--customGold)"
                 />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  class="absolute top-2 right-2 z-10 opacity-80 hover:opacity-100"
+                  onclick={(e) => handleDelete(i, e)}
+                  aria-label="Remove image from box {i + 1}"
+                >
+                  <Trash2 class="size-4" />
+                </Button>
               </Drawer.Trigger>
             {:else}
               <Drawer.Trigger
@@ -126,17 +139,6 @@
               > 
                 Catalogue box #{i + 1}
               </Drawer.Trigger>
-            {/if}
-            {#if $catalogue.previews[i]}
-              <Button
-                variant="destructive"
-                size="icon"
-                class="absolute top-2 right-2 z-10 opacity-80 hover:opacity-100"
-                onclick={(e) => handleDelete(i, e)}
-                aria-label="Remove image from box {i + 1}"
-              >
-                <Trash2 class="size-4" />
-              </Button>
             {/if}
           </div>
 
@@ -191,9 +193,10 @@
   {#if showWidget}
     <GeneratedWidget />
   {/if}
-  <div class="m-4">
-    <WorkingOnGUI feature="Social icons to send widget" />
+  <div class="my-4 mx-auto max-w-5xl">
+    <SharingToolkit />
   </div>
+  <WorkingOnGUI feature="Social icons to send widget" />
 </main>
 
 

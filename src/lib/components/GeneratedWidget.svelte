@@ -1,4 +1,5 @@
 <script lang="ts">
+  // GeneratedWidget
   import { catalogue } from "$lib/stores/catalogue";
   import PielBonitaTitle from "$lib/components/PielBonitaTitle.svelte";
 
@@ -27,7 +28,7 @@
       <img
         src={filled[0].url}
         alt="Widget box {filled[0].i + 1}"
-        class="w-full h-full object-contain"
+        class="w-full h-full object-cover"
       />
     </div>
   {:else if count === 2}
@@ -37,7 +38,7 @@
           <img
             src={box.url}
             alt="Widget box {box.i + 1}"
-            class="w-full h-full object-contain"
+            class="w-full h-full object-cover"
           />
         </div>
       {/each}
@@ -60,7 +61,7 @@
           <img
             src={box.url}
             alt="Widget box {box.i + 1}"
-            class="w-full h-full object-contain"
+            class="w-full h-full object-cover"
           />
         </div>
       {/each}

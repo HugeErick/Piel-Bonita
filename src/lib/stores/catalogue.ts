@@ -24,7 +24,7 @@ function publicUrlFor(path: string, updatedAt: string) {
 
 async function refreshCatalogue(): Promise<void> {
   const [{ data: images }, {data: settings }] = await Promise.all([
-    supabase.from("catalogue-images").select("box_index, storage_path, updated_at"),
+    supabase.from("catalogue_images").select("box_index, storage_path, updated_at"),
     supabase.from("catalogue_settings").select("layout").eq("id", true).single(),
   ]);
   const previews: (string | null)[] = Array(BOX_COUNT).fill(null);
