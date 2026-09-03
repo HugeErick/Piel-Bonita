@@ -45,6 +45,7 @@
 		"@templatical/types": "^0.30.0",
 		"mjml": "^5.4.0",
 		"mode-watcher": "^1.1.0",
-		"nodemailer": "^9.1.1"
+		"nodemailer": "^9.1.1",
+		"pusher-js": "^8.6.0"
 	}
 }
