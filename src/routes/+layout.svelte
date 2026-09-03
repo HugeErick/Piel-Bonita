@@ -7,6 +7,7 @@
 </script>
 
 <svelte:head>
+  <title>Piel Bonita</title>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
